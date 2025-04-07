@@ -38,13 +38,15 @@ export default async function handler(req, res) {
             body: JSON.stringify(payload),
         });
 
-        if (response.ok) {
-            return res.status(200).json({ success: true });
-        } else {
-            return res.status(500).json({ error: 'Webhook error' });
+        if (!response.ok) {
+            const errorDetails = await response.text(); // Detaillierte Fehlerantwort vom Webhook
+            console.error('Webhook Error:', errorDetails);
+            return res.status(500).json({ error: 'Webhook error', details: errorDetails });
         }
+
+        return res.status(200).json({ success: true });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Unexpected error' });
+        console.error('Unexpected error:', err);
+        return res.status(500).json({ error: 'Unexpected error', details: err.message });
     }
 }
