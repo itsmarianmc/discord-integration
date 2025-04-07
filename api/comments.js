@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing fields' });
     }
 
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL_COMMENT;
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL_COMMENTS;
 
     const payload = {
         content: `💬 **New Comment!**\n\n📝 **Message of user:** ${commentText}\n👤 **Name of user:** ${name}\n📧 **Email of user:** ${email || 'Not provided'}`
