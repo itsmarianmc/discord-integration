@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
     // ✅ CORS-Header setzen
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Oder z.B. 'http://localhost:5500'
+    res.setHeader('Access-Control-Allow-Origin', '*'); // oder z.B. 'http://localhost:5500'
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -14,16 +14,27 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { complaintText, email } = req.body;
+    const { commentText, username, email } = req.body;
 
-    if (!complaintText || !email) {
-        return res.status(400).json({ error: 'Missing fields' });
+    // Validierung der Pflichtfelder: commentText (mind. 20 Zeichen) und username
+    if (!commentText || commentText.trim().length < 20 || !username) {
+        return res.status(400).json({ error: 'Missing fields: Kommentartext (min. 20 Zeichen) und Name sind erforderlich.' });
     }
 
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL_REPORT;
+    // Falls eine Email angegeben wurde, diese validieren
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+    }
+
+    // Verwende hier deinen Discord-Webhook (Passe den Environment-Variable-Key ggf. an)
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL_COMMENT;
 
     const payload = {
-        content: `📢 **New notification!**\n\n📝 **Message of user:** ${complaintText}\n📧 **Email of user:** ${email}`
+        content: `📢 **New Comment!**\n\n📝 **Comment:** ${commentText}\n👤 **Username:** ${username}` + 
+                 (email ? `\n📧 **Email:** ${email}` : '')
     };
 
     try {
