@@ -1,4 +1,4 @@
-export default async function handler(req, res) { 
+export default async function handler(req, res) {
     // ✅ CORS-Header setzen
     res.setHeader('Access-Control-Allow-Origin', '*'); // Oder z.B. 'http://localhost:5500'
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -14,21 +14,16 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { commentText, email, name } = req.body;
+    const { commentText, name, email } = req.body;
 
-    // Validierung der Eingabedaten
-    if (!commentText || !name || commentText.length < 20) {
-        return res.status(400).json({ error: 'Missing or invalid fields' });
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return res.status(400).json({ error: 'Invalid email address' });
+    if (!commentText || !name) {
+        return res.status(400).json({ error: 'Missing fields' });
     }
 
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL_COMMENT;
 
     const payload = {
-        content: `📢 **New comment submitted!**\n\n📝 **Comment:** ${commentText}\n📧 **Email:** ${email || 'No email provided'}\n👤 **Name:** ${name}`
+        content: `💬 **New Comment!**\n\n📝 **Message of user:** ${commentText}\n👤 **Name of user:** ${name}\n📧 **Email of user:** ${email || 'Not provided'}`
     };
 
     try {
@@ -38,15 +33,13 @@ export default async function handler(req, res) {
             body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-            const errorDetails = await response.text(); // Detaillierte Fehlerantwort vom Webhook
-            console.error('Webhook Error:', errorDetails);
-            return res.status(500).json({ error: 'Webhook error', details: errorDetails });
+        if (response.ok) {
+            return res.status(200).json({ success: true });
+        } else {
+            return res.status(500).json({ error: 'Webhook error' });
         }
-
-        return res.status(200).json({ success: true });
     } catch (err) {
-        console.error('Unexpected error:', err);
-        return res.status(500).json({ error: 'Unexpected error', details: err.message });
+        console.error(err);
+        return res.status(500).json({ error: 'Unexpected error' });
     }
 }
