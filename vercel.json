@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "functions": {
+      "api/send-report.js": {
+        "runtime": "nodejs18.x"
+      }
+    }
+  }
+  
